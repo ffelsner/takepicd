@@ -37,8 +37,9 @@ def get_random_string(length=6):
 
 class TakePicDaemon(object):
 
-    def __init__(self, ip, port):
+    def __init__(self, camera, ip, port):
         self.shutdown_event = Event()
+        self.camera = camera
         self.ip = ip
         self.port = port
 
@@ -57,7 +58,7 @@ class TakePicDaemon(object):
         log.info('takepicd started with PID %s.' % pid)
 
         tcp_socket = open_tcp_socket(self.ip, self.port)
-        camera = cv2.VideoCapture(0)
+        camera = cv2.VideoCapture(self.camera)
 
         while True:
 
@@ -134,6 +135,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="takepidc: daemon that takes webcam pics via OpenCV")
     parser.add_argument('-d', '--daemon', help='run as a daemon', action='store_true', default=False)
+    parser.add_argument('--camera', type=int, default=0)
     parser.add_argument('--ip', type=str, default='0.0.0.0')
     parser.add_argument('--port', type=int, default=10000)
     parser_args = parser.parse_args()
@@ -147,7 +149,7 @@ if __name__ == '__main__':
     if not os.path.exists(SCRATCHPAD_DIR):
         os.makedirs(SCRATCHPAD_DIR, mode=0755)
 
-    tpd = TakePicDaemon(parser_args.ip, parser_args.port)
+    tpd = TakePicDaemon(parser_args.camera, parser_args.ip, parser_args.port)
 
     if parser_args.daemon:
         context = DaemonContext(
